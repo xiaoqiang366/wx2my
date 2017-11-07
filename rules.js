@@ -1,14 +1,8 @@
-# wx2my
-微信小程序转化支付宝小程序部分规则
-
-### 文件转换
-```
+// 文件转换
 *.wxml -> *.axml
 *.wxss -> *.acss
-```
 
-### Json字段转换
-```
+// Json字段转换
 function convertJson(src, target, done) {
     var pageCfg = fs.readFileSync(src, 'utf8');
     if (pageCfg && pageCfg.length > 0) {
@@ -45,10 +39,8 @@ function convertJson(src, target, done) {
     ws.on('finish', done);
     ws.end();
 }
-```
 
-### Wxml转换
-```
+// Wxml转换
 function convertWxml(src, target, done) {
     var content = fs.readFileSync(src, 'utf8');
     var ws = fs.createWriteStream(target);
@@ -270,10 +262,8 @@ function convertWxml(src, target, done) {
     ws.on('finish', done);
     ws.end();
 }
-```
 
-### Javascript转换
-```
+// javascript转换
 const apiDocPrefix = 'https://docs.alipay.com/miniapp/api/';
 let convertJsRule = {
     'login': {
@@ -489,10 +479,7 @@ let convertJsRule = {
         'replacement': false
     }
 };
-```
 
-### 其他
-```
+// 其他
 1. a:key="*this" 中不要使用变量，例如： a:key="index"。
 2. my.getSystemInfoSync() 方法需要放在Page onLoad时候执行。
-```
