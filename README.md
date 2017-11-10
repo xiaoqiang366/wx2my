@@ -1,12 +1,20 @@
 # wx2my
 微信小程序转化支付宝小程序部分规则
 
-- 部分转换规则
-    - [文件转换](#文件转换)
-    - [Json字段转换](#Json字段转换)
-    - [Wxml转换](#Wxml转换)
-    - [Javascript转换](#Javascript转换)
-    - [其他](#其他)
+### 其他
+1. a:key="*this" 中不要使用变量，例如： a:key="index"。
+2. 缓存数据(my.setStorage/my.setStorageSync/my.getStorage/my.getStorageSync)获取/存储入参数需要添加**key**字段，[参考地址](https://docs.alipay.com/mini/api/storage)。
+实例代码： 
+```
+let res = my.getStorageSync({ 
+    key: currentCity 
+});
+```
+
+3. **my.getSystemInfoSync** 同步获取设备信息方法需要放在page生命周期中的方法中执行才能正常执行，如需提前获取可通过**my.getSystemInfo**方法。
+4. 支付宝小程序不支持 Array.prototype.fill()、Array.prototype.find()、Symbol对象
+5. [**scroll-view**](https://docs.alipay.com/mini/component/scroll-view) 高度设置100%无效，需要js动态设置 [height](https://docs.alipay.com/mini/api/device#mygetsysteminfo)值。
+
 
 ### 文件转换
 ```
@@ -15,325 +23,91 @@
 ```
 
 ### Json字段转换
+* **navigationBarTitleText** -> **defaultTitle**
+* enablePullDownRefresh -> pullRefresh
+* navigationBarBackgroundColor -> titleBarColor
 ```
-function convertJson(src, target, done) {
-    var pageCfg = fs.readFileSync(src, 'utf8');
-    if (pageCfg && pageCfg.length > 0) {
-        try {
-        var pageCfgObj = JSON.parse(pageCfg);
-        if (pageCfgObj) {
-            // app.json 里根对象身上有 window 属性，{page_name}.json 里根对象对应着 app.json 中的 window 属性
-            var win = 'window' in pageCfgObj ? pageCfgObj.window : pageCfgObj;
-            replaceKeyOfObj(win, 'navigationBarTitleText', 'defaultTitle');
-            replaceKeyOfObj(win, 'enablePullDownRefresh', 'pullRefresh');
-            replaceKeyOfObj(win, 'navigationBarBackgroundColor', 'titleBarColor');
+"tabBar": {
+  ...
+  "list": [{
+    "pagePath": "pages/home/home",
+    "iconPath": "imgs/hu-gray.png",
+    "selectedIconPath": "imgs/hu-red.png",
+    "text": "首页"
+  }]
+}
+```
+转换为
 
-            if ('tabBar' in pageCfgObj) {
-                var tabBar = pageCfgObj.tabBar;
-                var items = replaceKeyOfObj(tabBar, 'list', 'items');
-                if (items) {
-                    for (var tabItem in items) {
-                        replaceKeyOfObj(items[tabItem], 'iconPath', 'icon');
-                        replaceKeyOfObj(items[tabItem], 'selectedIconPath', 'activeIcon');
-                        replaceKeyOfObj(items[tabItem], 'text', 'name');
-                    }
-                }
-            }
-            pageCfg = JSON.stringify(pageCfgObj, null, '\t');
-        }
-        } catch (error) {
-            console.error(error.message + ' at file ' + src);
-        }
-    }
-
-    var ws = fs.createWriteStream(target);
-
-    ws.write(pageCfg);
-    ws.on('finish', done);
-    ws.end();
+```
+"tabBar": {
+  ...
+  "items": [{
+    "pagePath": "pages/home/home",
+    "icon": "imgs/hu-gray.png",
+    "activeIcon": "imgs/hu-red.png",
+    "name": "首页"
+  }]
 }
 ```
 
 ### Wxml转换
-```
-function convertWxml(src, target, done) {
-    var content = fs.readFileSync(src, 'utf8');
-    var ws = fs.createWriteStream(target);
-    content = content.replace(/wx:(\w+)/g, "a:$1");
-    content = content.replace(/(<include.*)(\.wxml)(.*\/>)/g, "$1.axml$3");
-    content = content.replace(/(<import.*)(\.wxml)(.*\/>)/g, "$1.axml$3");
-    content = content.replace(/(<!--.*)(\.wxml)(.*-->)/g, "$1.axml$3");
-    content = content.replace(/a:key="\s*{{\s*item\s*\.\s*(\w*)\s*}}\s*"/g, "a:key=\"$1\"");
-    content = content.replace(/a:for-items=/g, "a:for=");
-    content = content.replace(/bindtap/g, "onTap"); 
-    content = content.replace(/bindlongtap/g, "onLongTap");
-    content = content.replace(/bindtouchstart/g, "onTouchStart");
-    content = content.replace(/bindtouchmove/g, "onTouchMove");
-    content = content.replace(/bindtouchcancel/g, "onTouchCancel");
-    content = content.replace(/bindtouchend/g, "onTouchEnd");
-
-    content = content.replace(/catchtap/g, "catchTap"); 
-    content = content.replace(/catchlongtap/g, "catchLongTap");
-    content = content.replace(/catchtouchstart/g, "catchTouchStart");
-    content = content.replace(/catchtouchmove/g, "catchTouchMove");
-    content = content.replace(/catchtouchcancel/g, "catchTouchCancel");
-    content = content.replace(/catchtouchend/g, "catchTouchEnd");
-    content = content.replace(/catchtouchend/g, "catchTouchEnd");
-    content = content.replace(/bindSubmit/g, "onSubmit");
-    content = content.replace(/bindReset/g, "onReset");
-    content = content.replace(/bindchange/g, "onChange");
-    content = content.replace(/bindinput/g, "onInput");
-    content = content.replace(/bindfocus/g, "onFocus");
-    content = content.replace(/bindblur/g, "onBlur");
-    content = content.replace(/bindconfirm/g, "onConfirm");
-    content = replaceImport(content, (dep) => {
-      if (dep && !dep.startsWith('/') && !dep.startsWith('./') && !dep.startsWith('..')) {
-          return './' + dep;
-      }
-      return dep;
-    });
-    // content = content.replace(/bindcolumnchange/g, "oncolumnchange"); // 这个目前还未实现
-    content = content.replace(/(<icon (\s*[\w-{}]+=[\w-{}"':#]+\s*){0,} type\s*=\s*["']\s*circle\s*["'](\s*[\w-{}]+=[\w-{}"':#]+\s*){0,}><\/icon>)/g, "<!--$1 circle 类型的 icon 不被支持，请用 css 样式来实现-->");
-   
-    var regex = /(<modal[\s\S]*<\/modal>)/g;
-    if (regex.test(content)) {
-        content = content.replace(regex, "<!--$1modal 标签已经不被支持，请使用 my.confirm()/my.alert()/my.showToast() 来实现对应功能-->");
-        logTips({
-            api: 'modal',
-            file: target,
-            content: 'modal 标签已经不被支持，请使用 my.confirm()/my.alert()/my.showToast() 来实现对应功能',
-            'type': '一般',
-            link: apiDocPrefix + 'ui-feedback#myconfirm'
-        });
-    }
-
-    var regex = /<input[\s\S]*placeholder-style/g;
-    if (regex.test(content)) {
-        logTips({
-            api: 'input 组件',
-            file: target,
-            content: 'input 组件的 placeholder-style 属性不被支持，请使用 css 样式来实现',
-            'type': '一般',
-            link: 'https://docs.alipay.com/mini/component/input'
-        });
-    }
-
-    regex = /a:key="\s*{{/g;
-    if (regex.test(content)) {
-        logTips({
-            api: '列表渲染',
-            file: target,
-            content: '列表渲染 a:key 里不能有变量',
-            'type': '严重',
-            link: 'https://docs.alipay.com/mini/framework/axml'
-        });
-    }
-
-    var regex = /bindcolumnchange/g;
-    if (regex.test(content)) {
-        logTips({
-            api: 'picker 组件',
-            file: target,
-            content: 'picker 组件的 bindcolumnchange 属性不被支持',
-            'type': '严重',
-            link: 'https://docs.alipay.com/mini/component/view'
-        });
-    }
-
-    var regex = /<i /g;
-    if (regex.test(content)) {
-        logTips({
-            api: '组件',
-            file: target,
-            content: '不能使用 html i 标签',
-            'type': '严重',
-            link: 'https://docs.alipay.com/mini/component/view'
-        });
-    }
-
-    var regex = /<p /g;
-    if (regex.test(content)) {
-        logTips({
-            api: '组件',
-            file: target,
-            content: '不能使用 html p 标签',
-            'type': '严重',
-            link: 'https://docs.alipay.com/mini/component/view'
-        });
-    }
-
-    var regex = /<span /g;
-    if (regex.test(content)) {
-        logTips({
-            api: '组件',
-            file: target,
-            content: '不能使用 html span 标签',
-            'type': '严重',
-            link: 'https://docs.alipay.com/mini/component/view'
-        });
-    }
-
-    var regex = /<a /g;
-    if (regex.test(content)) {
-        logTips({
-            api: '组件',
-            file: target,
-            content: '不能使用 html a 标签',
-            'type': '严重',
-            link: 'https://docs.alipay.com/mini/component/view'
-        });
-    }
-
-    var regex = /<b /g;
-    if (regex.test(content)) {
-        logTips({
-            api: '组件',
-            file: target,
-            content: '不能使用 html b 标签',
-            'type': '严重',
-            link: 'https://docs.alipay.com/mini/component/view'
-        });
-    }
-
-    var regex = /<br /g;
-    if (regex.test(content)) {
-        logTips({
-            api: '组件',
-            file: target,
-            content: '不能使用 html br 标签',
-            'type': '严重',
-            link: 'https://docs.alipay.com/mini/component/view'
-        });
-    }
-
-    var regex = /<hr /g;
-    if (regex.test(content)) {
-        logTips({
-            api: '组件',
-            file: target,
-            content: '不能使用 html hr 标签',
-            'type': '严重',
-            link: 'https://docs.alipay.com/mini/component/view'
-        });
-    }
-
-    var regex = /<font /g;
-    if (regex.test(content)) {
-        logTips({
-            api: '组件',
-            file: target,
-            content: '不能使用 html font 标签',
-            'type': '严重',
-            link: 'https://docs.alipay.com/mini/component/view'
-        });
-    }
-
-    var regex = /(<toast[\s\S]*<\/toast>)/g;
-    if (regex.test(content)) {
-        content = content.replace(regex, "<!--$1toast 标签已经不被支持，请使用 my.showToast()/my.hideToast() 来实现对应功能-->");
-        logTips({
-            file: target,
-            content: 'toast 标签已经不被支持，请使用 my.showToast() 来实现对应功能',
-            'type': '一般',
-            link: apiDocPrefix + 'ui-feedback#myshowToast'
-        });
-    }
-
-    regex = /(<loading[\s|\S]*<\/loading>)/g;
-    if (regex.test(content)) {
-        content = content.replace(regex, "<!--$1loading 标签已经不被支持，请使用 my.showNavigationBarLoading()/my.hideNavigationBarLoading() 来实现对应功能-->");
-        logTips({
-            file: target,
-            content: 'loading 标签已经不被支持，请使用 my.showToast()/my.hideToast() 来实现对应功能',
-            'type': '一般',
-            link: apiDocPrefix + 'ui-feedback#myshowNavigationBarLoading'
-        });
-    }
-
-    var regex = /(<action-sheet[\s|\S]*<\/action-sheet>)/g;
-    if (regex.test(content)) {
-        content = content.replace(regex, "<!--$1action-sheet 标签已经不被支持，请使用 my.showActionSheet() 来实现对应功能-->");
-        logTips({
-            file: target,
-            content: 'action-sheet 标签已经不被支持，请使用 my.showActionSheet() 来实现对应功能',
-            type: '严重',
-            link: apiDocPrefix + 'ui-feedback#myshowActionSheet'
-        });
-    }
-
-    regex = /(<contact-button[\s\S]*<\/contact-button>)/g;
-    if (regex.test(content)) {
-        content = content.replace(regex, "<!--$1contact-button 标签不被支持，请考虑其他替代方案-->");
-        logTips({
-            api: 'contact-button',
-            file: target,
-            content: 'contact-button 标签不被支持，请考虑其他替代方案',
-            type: '严重',
-            link: apiDocPrefix + 'ui-feedback'
-        });
-    }
-
-    ws.write(content);
-    ws.on('finish', done);
-    ws.end();
-}
-```
+* 引用替换
+    * `.wxml` -> `.axml`
+* 属性替换
+    * **`w:`** --> **`a:`**
+    * **`a:for-items=`** --> **`a:for=`**
+    * **`bindtap`** --> **`onTap"`**
+    * **`bindlongtap`** --> **`onLongTap`**
+    * **`bindtouchstart`** --> **`onTouchStart`**
+    * **`bindtouchmove`** --> **`onTouchMove`**
+    * **`bindtouchcancel`** --> **`onTouchCancel`**
+    * **`bindtouchend`** --> **`onTouchEnd`**
+    * **`catchtap`** --> **`catchTap"`**
+    * **`catchlongtap`** --> **`catchLongTap`**
+    * **`catchtouchstart`** --> **`catchTouchStart`**
+    * **`catchtouchmove`** --> **`catchTouchMove`**
+    * **`catchtouchcancel`** --> **`catchTouchCancel`**
+    * **`catchtouchend`** --> **`catchTouchEnd`**
+    * **`catchtouchend`** --> **`catchTouchEnd`**
+    * **`bindSubmit`** --> **`onSubmit`**
+    * **`bindReset`** --> **`onReset`**
+    * **`bindchange`** --> **`onChange`**
+    * **`bindinput`** --> **`onInput`**
+    * **`bindfocus`** --> **`onFocus`**
+    * **`bindblur`** --> **`onBlur`**
+    * **`bindconfirm`** --> **`onConfirm`**
+    * **`placeholder-style`** --> not support
+    * **`placeholder-class`** --> not support
+    * **`a:key`** --> 值不能绑定变量
+* 控件替换
+    * 不能使用普通为被支持的html标签例如： `i`、`p` `span` `a` `b` `br` `hr` `font`
 
 ### Javascript转换
+* 基础API类
+    * [`login`][wx-login]  => [`getAuthCode`][my-login]
+    * `wx.saveFile`暂不支持
+    * `wx.saveVideoToPhotosAlbum()`暂不支持
+    * `wx.getImageInfo()`暂不支持
+    * `getUserInfo` --> `getAuthUserInfo`
+    * `startPullDownRefresh`暂不支持
+    * **`wx.showModal`** -> **`my.confirm`**, 使用`my.alert()/my.confirm()` 来完成模态对话框的功能[参考][my-modal]
+    * `showToast` 参数不同， [参考][my-modal]
+    * `wx.openDocument()`不支持
+    * `getLocation` 参数不同，返回值不同。[参考][my-location]
+    * `wx.drawCanvas()` 已经废弃，请使用 `my.createCanvasContext & canvas.draw` 来迁移
+    * `my.createCanvasContext()` 需要传入 canvas id 作为入参，请适配下
+  
+
+
+[wx-login]: https://mp.weixin.qq.com/debug/wxadoc/dev/api/api-login.html#wxloginobject
+[my-login]: https://docs.alipay.com/mini/introduce/auth#22-%E5%AE%A2%E6%88%B7%E7%AB%AF%E8%8E%B7%E5%8F%96authcode
+[my-modal]: https://docs.alipay.com/mini/api/ui-feedback
+[my-location]: https://docs.alipay.com/mini/api/location
+
 ```
 const apiDocPrefix = 'https://docs.alipay.com/miniapp/api/';
 let convertJsRule = {
-    'login': {
-        'replacement': 'getAuthCode',
-        'tips': 'login api 不被支持，请修改 my.getAuthCode() 对应的入参来实现授权功能',
-        'type': '严重',
-        'link': apiDocPrefix + 'openapi-authorize#mygetAuthCode'
-    },
-    'saveFile': {
-        'tips': 'wx.saveFile 目前不能被支持，请寻找其他替代方案或移除本功能',
-        'type': '严重'
-    },
-    'saveVideoToPhotosAlbum': {
-        'tips': 'wx.saveVideoToPhotosAlbum() 目前不支持，请考虑其他方案或移除相应功能',
-        'type': '严重'
-    },
-    'getImageInfo': {
-        'tips': 'wx.getImageInfo() 不能被支持，请寻找其他的方案或移除相关功能',
-        'type': '严重'
-    },
-    'getUserInfo': {
-        'replacement': 'getAuthUserInfo',
-        'tips': '请修改 my.getAuthUserInfo() 对应的入参来实现授权功能',
-        'type': '严重',
-        'link': apiDocPrefix + 'openapi-authorize#mygetAuthUserInfo'
-    },
-    'stopPullDownRefresh': { 'replacement': 'allowPullDownRefresh' },
-    'showModal': {
-        'replacement': 'confirm',
-        'tips': '请迁移至 my.alert()/my.confirm() 来完成模态对话框的功能',
-        'link': apiDocPrefix + 'ui-feedback#myconfirm'
-    },
-    'requestPayment': {
-        'replacement': 'tradePay',
-        'tips': 'wx.requestPayment() 需要迁移至 my.tradePay(), 请参考文档',
-        'type': '严重',
-        'link': apiDocPrefix + 'openapi-authorize#mytradePay'
-    },
-    'openDocument': {
-        'tips': 'wx.openDocument() 不能被支持，请考虑其他的方案来实现对文档的支持或移除该功能',
-        'type': '严重'
-    },
-    'checkSession': {
-        'replacement': 'getAuthCode',
-        'tips': 'wx.checkSession() 不需要了，请使用：my.getAuthCode & my.getAuthUserInfo',
-        'type': '严重',
-        'link': apiDocPrefix + 'openapi-authorize#mygetAuthCode'
-    },
-    'getLocation': {
-        'replacement': 'getLocation',
-        'tips': 'my.getLocation() 返回值与 wx.getLocation() 不一样，请注意区分',
-        'link': apiDocPrefix + 'location#mygetLocation'
-    },
     'showToast': {
         'replacement': 'showToast',
         'tips': 'my.showToast() 参数与 wx.showToast()不一样',
@@ -345,18 +119,7 @@ let convertJsRule = {
     'closeBLEConnection': {
         'replacement': 'disconnectBLEDevice'
     },
-    'createContext': {
-        'replacement': 'createCanvasContext', 
-        'tips': 'my.createCanvasContext() 需要传入 canvas id 作为入参，请适配下',
-        'type': '一般', 
-        'link': apiDocPrefix + 'ui-canvas#mycreateCanvasContext(canvasId)'
-    },
-    'drawCanvas': {
-        'replacement': 'drawCanvas',
-        'tips': 'wx.drawCanvas() 已经废弃，请使用 my.createCanvasContext & canvas.draw 来迁移',
-        'type': '严重', 
-        'link': apiDocPrefix + 'ui-canvas#draw'
-    },
+
     'scanCode': { 'replacement': false },
     'chooseImage': {
         'replacement': false,
@@ -496,10 +259,4 @@ let convertJsRule = {
         'replacement': false
     }
 };
-```
-
-### 其他
-```
-1. a:key="*this" 中不要使用变量，例如： a:key="index"。
-2. my.getSystemInfoSync() 方法需要放在Page onLoad时候执行。
 ```

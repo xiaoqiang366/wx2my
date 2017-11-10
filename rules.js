@@ -482,4 +482,4 @@ let convertJsRule = {
 
 // 其他
 1. a:key="*this" 中不要使用变量，例如： a:key="index"。
-2. my.getSystemInfoSync() 方法需要放在Page onLoad时候执行。
+2. 缓存数据获取入参数需要添加**key**字段，[参考地址](https://docs.alipay.com/mini/api/storage)。
