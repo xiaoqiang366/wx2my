@@ -57,13 +57,13 @@ let res = my.getStorageSync({
 * 属性替换
     * **`w:`** --> **`a:`**
     * **`a:for-items=`** --> **`a:for=`**
-    * **`bindtap`** --> **`onTap"`**
+    * **`bindtap`** --> **`onTap`**
     * **`bindlongtap`** --> **`onLongTap`**
     * **`bindtouchstart`** --> **`onTouchStart`**
     * **`bindtouchmove`** --> **`onTouchMove`**
     * **`bindtouchcancel`** --> **`onTouchCancel`**
     * **`bindtouchend`** --> **`onTouchEnd`**
-    * **`catchtap`** --> **`catchTap"`**
+    * **`catchtap`** --> **`catchTap`**
     * **`catchlongtap`** --> **`catchLongTap`**
     * **`catchtouchstart`** --> **`catchTouchStart`**
     * **`catchtouchmove`** --> **`catchTouchMove`**
