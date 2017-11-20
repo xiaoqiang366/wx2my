@@ -1,0 +1,92 @@
+html(xmlns="http://www.w3.org/1999/xhtml" xml:lang="zh" lang="zh")
+  head
+    style(type='text/css').
+           .container {
+             width: 100%;
+           }
+           .c-table {
+            display: table;
+            width: 100%;
+            text-align: left; }
+            .c-table__th, .c-table th, .c-table__td, .c-table td {
+              padding-top: 11.5px;
+              padding-bottom: 11.5px;
+              padding-left: 5.75px;
+              padding-right: 5.75px; }
+            .c-table__th, .c-table th {
+              font-weight: 400;
+              color: #737373;
+              border-bottom: 2px solid #d0d4d9; }
+            .c-table__row, .c-table tr {
+              border-bottom: 1px solid #d0d4d9; }
+            .c-table__row--success, .c-table tr--success, .c-table__td--success, .c-table td--success {
+              background-color: #ddf0e2; }
+            .c-table__row--warning, .c-table tr--warning, .c-table__td--warning, .c-table td--warning {
+              background-color: #fff5cc; }
+            .c-table__row--error, .c-table tr--error, .c-table__td--error, .c-table td--error {
+              background-color: #fcbdbd; }
+            .c-table--zebra .c-table__row:nth-child(odd), .c-table--zebra tbody tr:nth-child(odd) {
+              background-color: #f7f9fa; }
+            .c-table--selectable .c-table__row:hover, .c-table--selectable .c-table__row:focus, .c-table--selectable .c-table__row.has-focus, .c-table--selectable tbody tr:hover, .c-table--selectable tbody tr:focus, .c-table--selectable tbody tr.has-focus {
+              background-color: #f4faff; }
+            .c-table--selectable .c-table__row.is-selected, .c-table--selectable tbody tr.is-selected {
+              background-color: #cce6fa; }
+
+            a,
+            .f-a,
+            .f-link {
+              text-decoration: none;
+              color: #007ee5;
+              cursor: pointer; }
+              a:hover,
+              .f-a:hover,
+              .f-link:hover {
+                text-decoration: underline; }
+
+            .file {
+              max-width: 250px;
+              word-wrap: break-word; 
+              word-break: normal; 
+            }
+            .api {
+              max-width: 120px;
+              word-wrap: break-word; 
+              word-break: normal; 
+            }
+            .c-badge {
+              box-sizing: border-box;
+              display: inline-block;
+              vertical-align: middle;
+              margin: 0;
+              padding: 1px 4px;
+              font-size: 9px;
+              font-weight: 700;
+              line-height: 1.4;
+              text-align: center;
+              text-shadow: none;
+              color: #ed7a6f;
+              background: white;
+              border: 1px solid #fcbdbd;
+              border-radius: 3px;
+            }
+    title= '小程序助手-需人工迁移内容一览'
+    meta(charset='utf-8')
+  body
+      div.container
+        table.c-table
+          thead
+            tr
+              each headitem in ['序号', 'API/组件', '所在文件', '问题等级', '迁移方案']
+                th=headitem
+          tbody
+            each tip,i in tips
+              - var cls = "c-table__row--" + tip.type
+              tr(class=cls)
+                td(class="index")
+                  - var ii = i + 1
+                  span.c-badge= ii
+                td(class="api")= tip.api
+                td(class="file")= tip.file
+                td(class=tip.type)= tip.type
+                td
+                  a(href=tip.link class="content" target="_content")= tip.content
