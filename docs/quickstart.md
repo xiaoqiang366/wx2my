@@ -1,6 +1,6 @@
 ### 快速导航
 
-- 常用
+- 常用地址
   + [支付宝小程序Bug列表](https://shimo.im/sheet/U2aB23Vuq9cem3DT/VLdxD?r=23X0N2/)
 
 - 参考文档
