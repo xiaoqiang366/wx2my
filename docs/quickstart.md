@@ -2,6 +2,7 @@
 
 - 常用地址
   + [支付宝小程序Bug列表](https://shimo.im/sheet/U2aB23Vuq9cem3DT/VLdxD?r=23X0N2/)
+  + [支付宝小程序版本发布规范](/alipay/rules.md)
 
 - 参考文档
   + [微信小程序](https://mp.weixin.qq.com/debug/wxadoc/dev/index.html)
