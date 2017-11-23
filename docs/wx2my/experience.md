@@ -65,6 +65,26 @@ bindGotop() { //回至顶部
 </swiper>
 ```
 
+## a:for
+> 当前使用`a:for`循环的元素上`a:if`不能使用变量。
+
+会导致页整个元素不显示，解决方式在循环体内部使用`a:if`或者`a:for`用在`<block>`元素上。
+
+【推荐写法】:在支付宝小程序中`a:for`推荐作用在`<block>`上，需要循环的元素放在block内部。
+```axml
+<swiper indicator-dots="{{indicatorDots}}" autoplay="{{autoplay}}">
+  <block a:for="{{background}}">
+    <swiper-item>
+      <view class="swiper-item bc_{{item}}"></view>
+    </swiper-item>
+  </block>
+</swiper>
+```
+
+## `<block/>`
+
+注意： `<block/>` 并不是一个组件，仅仅是一个包装元素，不会在页面中做任何渲染，**只接受控制属性**。
+
 
 
 ## 网络请求
@@ -145,25 +165,4 @@ tranform=null
 > 对于在axml中使用需要使用到的数据需要在 data初始化否则可能会报错 很多es6的对象(例如Array.prototype.fill()、Array.prototype.find()、Symbol等)不支持
 
 及时提出，统一引入相关pollyfill处理
-
-## a:for
-> 当前使用`a:for`循环的元素上`a:if`不能使用变量。
-
-会导致页整个元素不显示，解决方式在循环体内部使用`a:if`或者`a:for`用在`<block>`元素上。
-
-【推荐写法】:在支付宝小程序中`a:for`推荐作用在`<block>`上，需要循环的元素放在block内部。
-```axml
-<swiper indicator-dots="{{indicatorDots}}" autoplay="{{autoplay}}">
-  <block a:for="{{background}}">
-    <swiper-item>
-      <view class="swiper-item bc_{{item}}"></view>
-    </swiper-item>
-  </block>
-</swiper>
-```
-
-## `<block/>`
-
-注意： `<block/>` 并不是一个组件，仅仅是一个包装元素，不会在页面中做任何渲染，**只接受控制属性**。
-
 
