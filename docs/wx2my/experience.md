@@ -7,16 +7,16 @@
 !> 注意：在模拟器中获取的数据参数和真机上获取参数不同，可能会导致模拟器中`system` `platform`等参数获取不到; `my.getStorageSync({ key: 'key' })` 获取的数据是一个对象 obj，通过 obj.data 获取到数据， 此处和微信小程序有所不同。
 
 真机getSystemInfoSync()数据
-![真机getSystemInfoSync()数据](../wx2my/images/phoneSystemInfo.png)
+![真机getSystemInfoSync()数据](./images/phoneSystemInfo.png)
 
 模拟器getSystemInfoSync()数据
-![模拟器getSystemInfoSync()数据](../wx2my/images/simulationSystemInfo.png)
+![模拟器getSystemInfoSync()数据](./images/simulationSystemInfo.png)
 
 !> 项目中封装有**`my.systemInfo`**的方式获取设备信息。如果需要获取高度请直接使用 `getSystemInfoSync().windowHeight`， 不要使用`my.systemInfo.windowHeight`方式，原因:`my.systemInfo`获取的信息会被缓存，后面获取会从缓存中读取，而缓存的高度信息是在首页获取到的高度不包含首页底部导航条的高度，这里需要注意。
 
 设置高度、宽度过程如果有需要rpx转px计算可调用**`my.Util.rpx2px(num)`**方法
 
-![my.systemInfo](../wx2my/images/homeSystemInfo.png)
+![my.systemInfo](./images/homeSystemInfo.png)
 
 ## scroll-view
 
@@ -129,7 +129,7 @@ bindGotop() { //回至顶部
 
 es6中提供[箭头函数][arrowFunction], 由于在箭头函数中不绑定自己的`this`，所以在使用过程中需要注意以免遇坑。
 实际场景：
-![箭头函数](../wx2my/images/arrowFunction.png)
+![箭头函数](./images/arrowFunction.png)
 其中 `success` 方法调用的方式属于Page页面对象的`this`，而 `(){ } `方式定义的方法中 `this` 取决于方法调用的对象。在此上下文中`success`方法执行，获取到的`this`为`undefined`，因此后面方法的执行会出错导致收货问题的bug.
 
 推荐阅读：
