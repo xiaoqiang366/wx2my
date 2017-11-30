@@ -86,6 +86,13 @@ bindGotop() { //回至顶部
 注意： `<block/>` 并不是一个组件，仅仅是一个包装元素，不会在页面中做任何渲染，**只接受控制属性**。
 
 
+## image
+
+> image 事件绑定问题
+
+`image`上不要直接绑定onTap等事件，部分机型获取不到`event.target.dataset`的值。可能获取的值为 `{}`。解决方案：在`image`外层包一个`<view>`，将事件、绑定值都放在此`view`上。
+`image`推荐使用但闭合标签： `<image />`
+
 
 ## 网络请求
 
@@ -139,13 +146,6 @@ es6中提供[箭头函数][arrowFunction], 由于在箭头函数中不绑定自�
 
 
 [arrowFunction]: https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Functions/Arrow_function
-
-
-## 样式类
-
-> input等标签默认样式和微信默认样式不一样
-
-需要重置
 
 
 > 动画效果在scroll-view上会失效
